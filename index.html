@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>BoburGPT — чат</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    /* Общий фон */
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .chat-app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100%;
+      max-width: 500px;
+      background: #161b22;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    /* Шапка */
+    header {
+      background: #1f6feb;
+      padding: 15px;
+      text-align: center;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    /* Чат */
+    main {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #0d1117;
+    }
+
+    /* Сообщения */
+    .message {
+      max-width: 75%;
+      padding: 10px 14px;
+      border-radius: 18px;
+      font-size: 15px;
+      line-height: 1.4;
+      animation: fadeIn 0.3s ease;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+    }
+
+    .user {
+      align-self: flex-end;
+      background: #1f6feb;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .bot {
+      align-self: flex-start;
+      background: #30363d;
+      color: #e6edf3;
+      border-bottom-left-radius: 4px;
+    }
+
+    /* Ввод */
+    footer {
+      padding: 10px;
+      background: #161b22;
+      border-top: 1px solid #30363d;
+    }
+
+    .input-container {
+      display: flex;
+      gap: 8px;
+    }
+
+    input {
+      flex: 1;
+      padding: 12px;
+      border-radius: 20px;
+      border: none;
+      background: #0d1117;
+      color: #e6edf3;
+      outline: none;
+      font-size: 15px;
+    }
+
+    button {
+      padding: 12px 18px;
+      border: none;
+      border-radius: 50%;
+      background: #1f6feb;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #388bfd;
+    }
+
+    /* Анимация появления */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-app">
+    <header>
+      <h1>BoburGPT 🤖</h1>
+    </header>
+
+    <main id="chat-box"></main>
+
+    <footer>
+      <div class="input-container">
+        <input type="text" id="user-input" placeholder="Напиши сообщение..." onkeypress="if(event.key==='Enter'){sendMessage()}">
+        <button onclick="sendMessage()">➤</button>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const API_KEY = "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"; // вставь свой ключ
+    const API_URL = "https://api.groq.com/openai/v1/chat/completions";
+
+    async function sendMessage() {
+      const input = document.getElementById("user-input");
+      const chatBox = document.getElementById("chat-box");
+
+      const userMessage = input.value.trim();
+      if (!userMessage) return;
+
+      addMessage(userMessage, "user");
+      input.value = "";
+
+      // показать "печатает..."
+      const typing = document.createElement("div");
+      typing.classList.add("message", "bot");
+      typing.textContent = "BoburGPT печатает...";
+      chatBox.appendChild(typing);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${API_KEY}`
+          },
+          body: JSON.stringify({
+            model: "llama-3.1-8b-instant",
+            messages: [
+              { role: "system", content: "Ты — умный ассистент по имени BoburGPT. Никогда не называй себя другим именем." },
+              { role: "user", content: userMessage }
+            ]
+          })
+        });
+
+        const data = await response.json();
+        typing.remove();
+
+        if (data.choices && data.choices.length > 0) {
+          const botMessage = data.choices[0].message.content;
+          addMessage(botMessage, "bot");
+        } else {
+          addMessage("⚠️ Ошибка: нет ответа от модели", "bot");
+        }
+      } catch (error) {
+        typing.remove();
+        addMessage("⚠️ Ошибка: " + error.message, "bot");
+      }
+    }
+
+    function addMessage(text, sender) {
+      const chatBox = document.getElementById("chat-box");
+      const message = document.createElement("div");
+      message.classList.add("message", sender);
+      message.textContent = text;
+      chatBox.appendChild(message);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  </script>
+</body>
+</html>
