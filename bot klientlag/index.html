@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Video - Welcome</title>
+<style>
+    :root {
+        --bg: #050505; --card: #111; --text: #eee;
+        --neon1: #00f3ff; --neon2: #bc13fe;
+    }
+    body {
+        margin: 0; background: var(--bg); color: var(--text);
+        font-family: 'Segoe UI', sans-serif;
+        display: flex; align-items: center; justify-content: center; height: 100vh;
+        overflow: hidden; position: relative;
+    }
+    body::before {
+        content: ""; position: absolute; width: 200%; height: 200%;
+        background: radial-gradient(circle at 50% 50%, rgba(188,19,254,0.1), transparent 60%);
+        z-index: -1; animation: pulse 10s infinite;
+    }
+    @keyframes pulse { 0%{opacity:0.5} 50%{opacity:1} 100%{opacity:0.5} }
+
+    .card {
+        background: rgba(20, 20, 20, 0.8); backdrop-filter: blur(10px);
+        padding: 40px; border-radius: 20px; width: 350px; text-align: center;
+        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    }
+
+    h1 { margin: 0 0 20px; color: #fff; text-transform: uppercase; letter-spacing: 2px; }
+    
+    input, select {
+        width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px;
+        border: 1px solid #333; background: #0a0a0a; color: #fff; outline: none;
+        box-sizing: border-box; transition: 0.3s;
+    }
+    input[type="file"] { padding: 10px 12px; height: 44px; }
+    input:focus, select:focus { border-color: var(--neon2); box-shadow: 0 0 10px rgba(188,19,254,0.2); }
+
+    /* КНОПКА (Улучшенный стиль) */
+    .btn {
+        width: 100%; padding: 14px; margin-top: 20px; border: none; border-radius: 10px;
+        background: linear-gradient(90deg, var(--neon1), var(--neon2));
+        color: #fff; font-weight: bold; cursor: pointer; text-transform: uppercase;
+        transition: 0.3s; box-shadow: 0 5px 20px rgba(0, 243, 255, 0.2);
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 7px 25px rgba(0, 243, 255, 0.4); }
+
+    .switch { margin-top: 15px; font-size: 13px; color: #888; cursor: pointer; }
+    .switch:hover { color: var(--neon1); text-decoration: underline; }
+
+    /* Lang Modal */
+    .modal {
+        position: fixed; inset: 0; background: #000; z-index: 999;
+        display: flex; align-items: center; justify-content: center;
+        flex-direction: column;
+    }
+    .modal.hidden { display: none; }
+    .lang-opt {
+        font-size: 24px; margin: 10px; padding: 15px 40px;
+        border: 2px solid var(--neon1); color: var(--neon1);
+        background: transparent; border-radius: 30px; cursor: pointer;
+        width: 200px; transition: 0.3s;
+    }
+    .lang-opt:hover { background: var(--neon1); color: #000; box-shadow: 0 0 20px var(--neon1); }
+
+    .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div id="langModal" class="modal">
+    <h2 style="color:#fff; margin-bottom:30px">Select Language / Выберите Язык</h2>
+    <button class="lang-opt" onclick="setLang('ru')">Русский</button>
+    <button class="lang-opt" onclick="setLang('uz')">O'zbekcha</button>
+</div>
+
+<div class="card">
+    <h1 id="title">Login</h1>
+    
+    <div id="formBox">
+        <input id="inpName" class="hidden" placeholder="Имя / Ism">
+        <input id="inpLogin" placeholder="Логин / Login">
+        <input id="inpPass" type="password" placeholder="Пароль / Parol">
+        <label id="lblAvatar" class="hidden" style="display:block; text-align:left; color:#888; margin-top:10px; font-size:14px;">Аватар (необязательно)</label>
+        <input id="inpAvatar" type="file" class="hidden">
+        
+        <button class="btn" onclick="submitAuth()" id="btnSubmit">Войти</button>
+    </div>
+
+    <div class="switch" onclick="toggleMode()" id="switchText">Нет аккаунта? Создать</div>
+</div>
+
+<script>
+    const TR = {
+        ru: { titleIn: "Вход", titleUp: "Регистрация", btnIn: "Войти", btnUp: "Создать", swIn: "Нет аккаунта? Регистрация", swUp: "Есть аккаунт? Войти", name: "Ваше Имя", login: "Логин", pass: "Пароль", avatar: "Аватар (необязательно)" },
+        uz: { titleIn: "Kirish", titleUp: "Ro'yxatdan o'tish", btnIn: "Kirish", btnUp: "Yaratish", swIn: "Hisob yo'qmi? Yaratish", swUp: "Hisob bormi? Kirish", name: "Ismingiz", login: "Login", pass: "Parol", avatar: "Avatar (ixtiyoriy)" }
+    };
+
+    let mode = 'login';
+    let lang = localStorage.getItem('app_lang');
+
+    if (!lang) {
+        document.getElementById('langModal').classList.remove('hidden');
+    } else {
+        document.getElementById('langModal').classList.add('hidden');
+        applyLang();
+    }
+
+    function setLang(l) {
+        lang = l;
+        localStorage.setItem('app_lang', l);
+        document.getElementById('langModal').classList.add('hidden');
+        applyLang();
+    }
+
+    function applyLang() {
+        const t = TR[lang];
+        document.getElementById('inpName').placeholder = t.name;
+        document.getElementById('inpLogin').placeholder = t.login;
+        document.getElementById('inpPass').placeholder = t.pass;
+        document.getElementById('lblAvatar').innerText = t.avatar;
+        updateUI();
+    }
+
+    function updateUI() {
+        const t = TR[lang];
+        const isRegister = mode === 'register';
+        
+        document.getElementById('title').innerText = isRegister ? t.titleUp : t.titleIn;
+        document.getElementById('btnSubmit').innerText = isRegister ? t.btnUp : t.btnIn;
+        document.getElementById('switchText').innerText = isRegister ? t.swUp : t.swIn;
+
+        document.getElementById('inpName').classList.toggle('hidden', !isRegister);
+        document.getElementById('inpAvatar').classList.toggle('hidden', !isRegister);
+        document.getElementById('lblAvatar').classList.toggle('hidden', !isRegister);
+    }
+
+    function toggleMode() {
+        mode = (mode === 'login') ? 'register' : 'login';
+        updateUI();
+    }
+
+    async function submitAuth() {
+        const login = document.getElementById('inpLogin').value;
+        const pass = document.getElementById('inpPass').value;
+        const name = document.getElementById('inpName').value;
+
+        if (!login || !pass) return alert('Error: Empty fields');
+
+        if (mode === 'login') {
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ login, password: pass })
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    window.location.href = '/panel.html';
+                } else {
+                    alert(data.error || 'Ошибка входа');
+                }
+            } catch (e) {
+                alert('Server error');
+            }
+        } else {
+            if (!name) return alert('Имя обязательно!');
+
+            // Отправляем как FormData для передачи файла
+            const formData = new FormData();
+            formData.append('login', login);
+            formData.append('password', pass);
+            formData.append('name', name);
+            formData.append('lang', lang);
+            
+            const avatarFile = document.getElementById('inpAvatar').files[0];
+            if (avatarFile) {
+                formData.append('avatar', avatarFile);
+            }
+
+            try {
+                // ВНИМАНИЕ: Для FormData нужно немного изменить логику в app.py!
+                // Сейчас app.py принимает JSON для register. Временно отправляю JSON. 
+                // Если будете использовать загрузку аватара, в app.py нужно будет заменить 
+                // @app.route("/api/register", methods=["POST"]) с request.get_json() на request.form и request.files
+                // Для простоты, пока отправляю только JSON, но показываю поле.
+                
+                // Если вы хотите, чтобы загрузка аватара работала сразу:
+                // ВАМ НУЖНО ИЗМЕНИТЬ /api/register в app.py, чтобы он принимал FormData.
+                // Но так как вы не предоставили обновленный app.py с этими изменениями, 
+                // я отправляю JSON без аватара, чтобы не сломать текущую логику.
+                
+                // Если нужно, чтобы аватар работал, замените этот блок на отправку FormData, 
+                // а в app.py измените /api/register на прием FormData.
+                
+                // === Текущая (JSON) отправка для совместимости с вашим app.py ===
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ login, password: pass, name: name, lang: lang })
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    alert('Регистрация успешна! Войдите.');
+                    mode = 'login';
+                    updateUI();
+                } else {
+                    alert(data.error || 'Ошибка регистрации');
+                }
+                // ================================================================
+
+            } catch (e) {
+                alert('Server error');
+            }
+        }
+    }
+</script>
+</body>
+</html>

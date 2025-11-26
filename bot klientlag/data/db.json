@@ -1,0 +1,125 @@
+{
+    "users": {
+        "Bobur2012.12": {
+            "name": "Admin Support",
+            "password": "scrypt:32768:8:1$mGVLEHBI1ea63L2I$9f8ccb0ba578b03a2a05d3bb96ddda290a663db2cde1a348a16c2c89aba086917fde90bc9190d0d0e5fbf8cc688d4996b353bbcd6502a6b14251a55e6ab112b4",
+            "role": "admin",
+            "avatar": null,
+            "lang": "uz"
+        },
+        "BoburShuhartov": {
+            "name": "Bobur",
+            "password": "scrypt:32768:8:1$X2iLRDZJaJHU7e7m$6c0d8d50f93de20162b5600609b5283007e296b3752165702a51feb729cffda42f09bf8f6ce79fb480cbde22844aa7705f74c152d2e48ba65ecfab48e6ffc8a8",
+            "role": "user",
+            "avatar": null,
+            "lang": "uz"
+        },
+        "ijioj": {
+            "name": "jij'io",
+            "password": "scrypt:32768:8:1$jOvpFQmk3OmdoWvo$460867a44ce2f5c8a609a5dc258ddb33f86dbe981ae3ac52df4db6b816b3b765ce0d34a6e7ea14750a57a3a21db4d6a867aa7d683e08acef62116c5dba7581df",
+            "role": "user",
+            "avatar": null,
+            "lang": "ru"
+        },
+        "BoburShuhartovjjhuoh": {
+            "name": "huih",
+            "password": "scrypt:32768:8:1$dGIhymtSkW4qLYRD$7b8be098e0b9c1b3fc26953de46de07b1024883fc9c2b03200db8c31a8afabd74d4da0bd76d6d1672093e2782b42aa74cfdb03a10d10046ca35f3b2530a913d1",
+            "role": "user",
+            "avatar": "1764141765.971194_1.png",
+            "lang": "ru"
+        }
+    },
+    "services": [
+        {
+            "id": 1764141670,
+            "title": "test",
+            "desc": "test",
+            "price": "1000 sum",
+            "image": "1764141670.9723063_171667-minimalizm-art-grafika-atmosfera-mir-x750.jpg"
+        }
+    ],
+    "orders": [
+        {
+            "id": 1764100503,
+            "user": "BoburShuhartov",
+            "service": "d",
+            "price": "wcc",
+            "status": "waiting",
+            "date": "2025-11-26 00:55"
+        },
+        {
+            "id": 1764141518,
+            "user": "ijioj",
+            "service": "d",
+            "price": "wcc",
+            "status": "waiting",
+            "date": "2025-11-26 12:18"
+        },
+        {
+            "id": 1764141742,
+            "user": "BoburShuhartovjjhuoh",
+            "service": "test",
+            "price": "1000 sum",
+            "status": "waiting",
+            "date": "2025-11-26 12:22"
+        }
+    ],
+    "messages": [
+        {
+            "from": "BoburShuhartov",
+            "to": "Bobur2012.12",
+            "text": ".",
+            "file": null,
+            "time": 1764100516.9744372
+        },
+        {
+            "from": "Bobur2012.12",
+            "to": "BoburShuhartov",
+            "text": "2w",
+            "file": null,
+            "time": 1764100927.7210085
+        },
+        {
+            "from": "Bobur2012.12",
+            "to": "BoburShuhartov",
+            "text": "",
+            "file": "1764100937.092801_msg_1.png",
+            "time": 1764100937.1089554
+        },
+        {
+            "from": "Bobur2012.12",
+            "to": "BoburShuhartov",
+            "text": "",
+            "file": "1764100955.9689233_msg_photo_2025-11-23_20-43-44.jpg",
+            "time": 1764100955.9774284
+        },
+        {
+            "from": "Bobur2012.12",
+            "to": "BoburShuhartov",
+            "text": "4567894",
+            "file": null,
+            "time": 1764125461.700694
+        },
+        {
+            "from": "Bobur2012.12",
+            "to": "BoburShuhartov",
+            "text": "456",
+            "file": null,
+            "time": 1764141622.357701
+        },
+        {
+            "from": "BoburShuhartovjjhuoh",
+            "to": "Bobur2012.12",
+            "text": "njhnu;",
+            "file": null,
+            "time": 1764141751.151418
+        },
+        {
+            "from": "BoburShuhartovjjhuoh",
+            "to": "Bobur2012.12",
+            "text": "",
+            "file": "1764141755.51504_msg_1.png",
+            "time": 1764141755.516012
+        }
+    ]
+}

@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "user": "Bobur2012.12",
+    "service_name": "Bovur",
+    "price": "jwdn",
+    "status": "pending",
+    "date": "2025-11-26 00:21"
+  },
+  {
+    "id": 2,
+    "user": "BoburShuhartov",
+    "service_name": "Bovur",
+    "price": "jwdn",
+    "status": "pending",
+    "date": "2025-11-26 00:21"
+  },
+  {
+    "id": 3,
+    "user": "BoburShuhartov",
+    "service_name": "vd yaratish",
+    "price": "10000 ming sum",
+    "status": "pending",
+    "date": "2025-11-26 00:27"
+  },
+  {
+    "id": 4,
+    "user": ". ,.m",
+    "service_name": "Ищи",
+    "price": "вув",
+    "status": "pending",
+    "date": "2025-11-26 00:44"
+  }
+]

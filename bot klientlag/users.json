@@ -1,0 +1,42 @@
+{
+  "Bobur2012.12": {
+    "password_hash": "scrypt:32768:8:1$Mhn3plYYZWh78Q0N$f50a2b17adc55709f3a017c6fc9561e56958498522fe253c061e5c6600a9cde1c64b6d80ba8ec8c047498acfe76d0931eb57212e113484d390b7bff6f0c23d35",
+    "role": "admin",
+    "created_at": "2025-11-25T07:05:20.879427",
+    "lang": "uz",
+    "remember_token": "8283bd63d46becc06a562250fbc7b5c0e8e2b46bcb4524d1",
+    "display_name": "Bobur2012.12",
+    "avatar": "Bobur2012.12_28f82715.jpg"
+  },
+  "BoburShuhartov": {
+    "password_hash": "scrypt:32768:8:1$yEntymcpnVPMW62Z$cdd637db569646faae3fe32f92cd443feb8d7a90d4998e0e254e0403ec8d614cab87ede1ed35c01bccc0e10f628d28454a6551a7a844a60b4a264d8a80d9a3f9",
+    "role": "client",
+    "created_at": "2025-11-25T07:06:06.212678",
+    "lang": "uz",
+    "remember_token": "6164fec5f622e5e7742e092427751709188e1de0f6ca9db1",
+    "display_name": "Bo"
+  },
+  "n,n": {
+    "password_hash": "scrypt:32768:8:1$xGu8lE8awongyNtn$7194870c5ffd6f58f06599240e45d39ebed46cff1796068dca1db2a0e4abac7bf15554e2d4fe41f35fbf2fb1a6c7f2d763c32413a8a43fdb4fc081f450e552f1",
+    "role": "client",
+    "created_at": "2025-11-25T07:43:22.445491",
+    "lang": "ru",
+    "remember_token": "9ddd8ab6d599ebd13a488cfc133c6ce26271115d562b21f6"
+  },
+  "sw": {
+    "password_hash": "scrypt:32768:8:1$CPXja0C64PaGo1Wx$4c168d1911459b22dcf4772c4ad1a087e3ad8e00b60d1edae6df997410bda0681908afbf3de2b27a46c48cc9548b5db98764a74b320d8c8c3210d0b09a097df8",
+    "role": "client",
+    "created_at": "2025-11-25T19:09:18.814741",
+    "display_name": "sw",
+    "avatar": null,
+    "lang": "ru",
+    "remember_token": "3185b3bb70da6eae74db05b46a5182ba54b7338906455195"
+  },
+  ". ,.m": {
+    "password_hash": "scrypt:32768:8:1$OYDoeo9PYqu8drL4$59b14cac910ad8bbf77ef7d26cee2fe9b67406b9696fe7b71ea92b8d0da40679b2654f68247acd4c857571a19b2a0818d5369f747c41adf22832cc3b0510aa24",
+    "role": "client",
+    "display_name": ". ,.m",
+    "avatar": ". ,.m_c5d636e5.png",
+    "lang": "uz"
+  }
+}

@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Panel</title>
+<style>
+    /* --- THEME --- */
+    :root {
+        --bg: #050505; --card: #0f0f12; --text: #eee;
+        --acc1: #00f3ff; --acc2: #bc13fe;
+        --grad: linear-gradient(135deg, var(--acc1), var(--acc2));
+    }
+    body {
+        margin: 0; background: var(--bg); color: var(--text);
+        font-family: 'Segoe UI', sans-serif; height: 100vh;
+        display: flex; flex-direction: column; overflow: hidden;
+    }
+
+    /* --- LAYOUT --- */
+    .main { display: flex; flex: 1; overflow: hidden; }
+    .sidebar {
+        width: 250px; background: var(--card); border-right: 1px solid #222;
+        padding: 20px; display: flex; flex-direction: column; gap: 10px;
+    }
+    .content { flex: 1; padding: 20px; overflow-y: auto; position: relative; }
+
+    /* --- UI --- */
+    h2 { margin-top: 0; color: var(--acc1); text-transform: uppercase; }
+    
+    /* УЛУЧШЕННЫЕ КНОПКИ БОКОВОЙ ПАНЕЛИ */
+    .btn {
+        padding: 12px; border: none; border-radius: 8px; cursor: pointer;
+        background: #1a1a1e; /* Более темный фон для контраста */
+        color: #ddd; text-align: left;
+        transition: 0.3s; font-size: 16px; font-weight: 500;
+        border-left: 3px solid transparent;
+    }
+    .btn:hover {
+        background: #2a2a30;
+        color: #fff;
+    }
+    .btn.active {
+        background: rgba(188,19,254,0.15); 
+        color: var(--acc1); 
+        border-left: 3px solid var(--acc1);
+        font-weight: bold;
+    }
+    
+    .btn-action {
+        background: var(--grad); color: #fff; text-align: center;
+        font-weight: bold; border-radius: 20px; margin-top: 10px;
+        box-shadow: 0 5px 15px rgba(0, 243, 255, 0.2);
+        transition: 0.3s;
+    }
+    .btn-action:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 7px 20px rgba(0, 243, 255, 0.4);
+    }
+    
+    .input-box {
+        width: 100%; padding: 10px; background: #111; border: 1px solid #333;
+        color: #fff; border-radius: 8px; margin-bottom: 10px; box-sizing: border-box;
+    }
+
+    /* --- CARDS --- */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+    .card {
+        background: var(--card); border: 1px solid #222; border-radius: 15px;
+        padding: 15px; transition: 0.3s; overflow: hidden;
+    }
+    .card:hover { border-color: var(--acc2); transform: translateY(-3px); }
+    .card img { width: 100%; height: 150px; object-fit: cover; border-radius: 10px; }
+
+    /* --- CHAT OVAL & IRIDESCENT --- */
+    .chat-container { display: flex; flex-direction: column; height: 100%; }
+    .chat-box {
+        flex: 1; overflow-y: auto; background: rgba(0,0,0,0.2);
+        border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 15px;
+        border: 1px solid #222; margin-bottom: 10px;
+    }
+    
+    /* Сообщение - Пузырь */
+    .msg {
+        max-width: 70%; padding: 12px 24px; 
+        border-radius: 50px; /* ОВАЛЬНАЯ ФОРМА */
+        font-size: 15px; line-height: 1.4; position: relative;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    
+    /* Мои сообщения - Переливающийся неон */
+    .msg.me {
+        align-self: flex-end; color: #fff;
+        background: linear-gradient(120deg, #00f3ff, #bc13fe, #00f3ff);
+        background-size: 200% 200%;
+        animation: shimmer 5s infinite linear;
+        border-bottom-right-radius: 5px; /* Хвостик */
+    }
+    @keyframes shimmer { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }
+
+    /* Чужие сообщения */
+    .msg.other {
+        align-self: flex-start; color: #ddd;
+        background: #1f1f23; border: 1px solid #333;
+        border-bottom-left-radius: 5px; /* Хвостик */
+    }
+
+    /* Список юзеров для админа */
+    .user-row {
+        padding: 10px; background: #111; margin-bottom: 5px; border-radius: 10px;
+        cursor: pointer; display: flex; align-items: center; gap: 10px;
+    }
+    .user-row:hover { background: #222; border: 1px solid var(--acc1); }
+    .avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #333; }
+
+    .hidden { display: none !important; }
+    
+    /* Modal Profile */
+    .modal {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100;
+        display: flex; align-items: center; justify-content: center;
+    }
+</style>
+</head>
+<body>
+
+<div class="main">
+    <div class="sidebar">
+        <h3 id="roleLabel" style="color:var(--acc2); margin:0 0 10px 10px;">User Panel</h3>
+        <button class="btn active" onclick="tab('services')" id="btnSvc">Services</button>
+        <button class="btn" onclick="tab('orders')" id="btnOrd">Orders</button>
+        <button class="btn" onclick="tab('chat')" id="btnChat">Chat</button>
+        <button class="btn hidden" id="btnAdmin" onclick="tab('admin')">Admin</button>
+        
+        <div style="flex:1"></div>
+        <button class="btn" onclick="openProfile()" id="btnProf">Профиль</button>
+        <button class="btn" onclick="logout()" style="color:#f55">Выйти</button>
+    </div>
+
+    <div class="content">
+        <div id="view-services">
+            <h2 id="lblSvc">Services</h2>
+            <div class="grid" id="gridServices"></div>
+        </div>
+
+        <div id="view-orders" class="hidden">
+            <h2 id="lblOrd">My Orders</h2>
+            <div class="grid" id="gridOrders"></div>
+        </div>
+
+        <div id="view-chat" class="hidden" style="height:100%">
+            <div id="chatUserList" class="hidden">
+                <h3>Select User</h3>
+                <div id="usersContainer"></div>
+            </div>
+
+            <div id="chatInterface" class="chat-container hidden">
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px">
+                    <button id="backBtn" class="hidden" onclick="showUsersList()" style="background:none; border:1px solid #555; color:#fff; padding:5px 10px; border-radius:20px; cursor:pointer;">&larr; Back</button>
+                    <strong style="color:var(--acc1)" id="chatTargetName">Support</strong>
+                </div>
+                
+                <div id="msgBox" class="chat-box"></div>
+                
+                <div style="display:flex; gap:10px;">
+                    <input type="file" id="chatFile" class="hidden" onchange="sendFile()">
+                    <button onclick="document.getElementById('chatFile').click()" style="background:none; border:1px solid #444; color:#fff; border-radius:50%; width:40px; cursor:pointer;">+</button>
+                    <input id="chatInput" class="input-box" style="margin:0" placeholder="Message..." onkeypress="if(event.key==='Enter') sendMsg()">
+                    <button class="btn-action" style="margin:0; padding:0 20px" onclick="sendMsg()">></button>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-admin" class="hidden">
+            <h2>Add Service</h2>
+            <div class="card" style="max-width:400px">
+                <input id="newTitle" class="input-box" placeholder="Title">
+                <textarea id="newDesc" class="input-box" placeholder="Description"></textarea>
+                <input id="newPrice" class="input-box" placeholder="Price">
+                <input type="file" id="newImg" class="input-box">
+                <button class="btn-action" style="width:100%" onclick="addService()">Add</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="profileModal" class="modal hidden">
+    <div class="card" style="width:300px; text-align:center;">
+        <h3>Профиль</h3>
+        <input id="profName" class="input-box" placeholder="Name">
+        <label style="display:block; text-align:left; color:#888; margin-bottom:5px; font-size:14px;">Язык</label>
+        <select id="profLang" class="input-box">
+            <option value="ru">Русский</option>
+            <option value="uz">O'zbekcha</option>
+        </select>
+        <label style="display:block; text-align:left; color:#888; margin-bottom:5px; font-size:14px;">Аватар</label>
+        <input type="file" id="profAva" class="input-box" style="padding:10px 12px; height:auto;">
+        <button class="btn-action" style="width:100%" onclick="saveProfile()">Save</button>
+        <button onclick="document.getElementById('profileModal').classList.add('hidden')" style="margin-top:10px; background:none; border:none; color:#888; cursor:pointer;">Close</button>
+    </div>
+</div>
+
+<script>
+    const TR = {
+        ru: { svc:"Услуги", ord:"Заказы", chat:"Чат", buy:"Купить", add:"Добавить", admin:"Админ", prof:"Профиль", btn_prof:"Профиль" },
+        uz: { svc:"Xizmatlar", ord:"Buyurtmalar", chat:"Chat", buy:"Sotib olish", add:"Qo'shish", admin:"Admin", prof:"Profil", btn_prof:"Profil" }
+    };
+
+    let me = null;
+    let chatTarget = null;
+    let chatInterval = null;
+
+    async function init() {
+        const res = await fetch('/api/who');
+        me = await res.json();
+        if(!me.logged) window.location.href = '/';
+
+        document.getElementById('roleLabel').innerText = me.role === 'admin' ? 'ADMIN PANEL' : 'USER PANEL';
+        if(me.role === 'admin') document.getElementById('btnAdmin').classList.remove('hidden');
+
+        // Apply Lang
+        const L = TR[me.lang];
+        document.getElementById('btnSvc').innerText = L.svc;
+        document.getElementById('btnOrd').innerText = L.ord;
+        document.getElementById('btnChat').innerText = L.chat;
+        document.getElementById('lblSvc').innerText = L.svc;
+        document.getElementById('btnProf').innerText = L.btn_prof;
+        
+        loadServices();
+    }
+    init();
+
+    function tab(name) {
+        ['services','orders','chat','admin'].forEach(x => {
+            document.getElementById('view-'+x)?.classList.add('hidden');
+            const btnEl = document.getElementById('btn'+(x.charAt(0).toUpperCase()+x.slice(1)));
+            if(btnEl) btnEl.classList.remove('active');
+        });
+        document.getElementById('view-'+name).classList.remove('hidden');
+        document.getElementById('btn'+(name.charAt(0).toUpperCase()+name.slice(1))).classList.add('active');
+        
+        if(name === 'chat') startChat();
+        else clearInterval(chatInterval);
+
+        if(name === 'orders') loadOrders();
+        if(name === 'services') loadServices();
+    }
+
+    // --- SERVICES ---
+    async function loadServices() {
+        const res = await fetch('/api/services');
+        const list = await res.json();
+        const grid = document.getElementById('gridServices');
+        grid.innerHTML = '';
+        list.forEach(s => {
+            const img = s.image ? `/media/${s.image}` : '';
+            const btn = me.role === 'admin' 
+                ? `<button onclick="delService(${s.id})" style="color:red; background:none; border:none; cursor:pointer">Delete</button>`
+                : `<button class="btn-action" style="width:100%" onclick="buy('${s.title}','${s.price}')">${TR[me.lang].buy}</button>`;
+            
+            grid.innerHTML += `
+            <div class="card">
+                ${img ? `<img src="${img}">` : ''}
+                <h3>${s.title}</h3>
+                <p style="color:#aaa">${s.desc}</p>
+                <div style="color:var(--acc1); font-weight:bold">${s.price}</div>
+                ${btn}
+            </div>`;
+        });
+    }
+
+    async function addService() {
+        const fd = new FormData();
+        fd.append('title', document.getElementById('newTitle').value);
+        fd.append('desc', document.getElementById('newDesc').value);
+        fd.append('price', document.getElementById('newPrice').value);
+        fd.append('image', document.getElementById('newImg').files[0]);
+        await fetch('/api/services', {method:'POST', body:fd});
+        alert('Ok'); loadServices();
+    }
+    async function delService(id) {
+        if(confirm('Del?')) {
+            await fetch('/api/services/delete', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id})});
+            loadServices();
+        }
+    }
+    async function buy(svc, pr) {
+        if(!confirm('Buy?')) return;
+        await fetch('/api/orders', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({service:svc, price:pr})});
+        alert('Order created');
+    }
+
+    // --- ORDERS ---
+    async function loadOrders() {
+        const res = await fetch('/api/orders');
+        const list = await res.json();
+        const grid = document.getElementById('gridOrders');
+        grid.innerHTML = '';
+        list.reverse().forEach(o => {
+            grid.innerHTML += `<div class="card"><b>${o.service}</b><br>${o.price}<br><small>${o.status}</small></div>`;
+        });
+    }
+
+    // --- CHAT ---
+    function startChat() {
+        if(me.role === 'admin') {
+            if(chatTarget) showChatBox(); else showUsersList();
+        } else {
+            chatTarget = 'admin'; document.getElementById('chatTargetName').innerText = 'Support'; showChatBox();
+        }
+    }
+    async function showUsersList() {
+        clearInterval(chatInterval);
+        document.getElementById('chatUserList').classList.remove('hidden');
+        document.getElementById('chatInterface').classList.add('hidden');
+        const res = await fetch('/api/users_list');
+        const list = await res.json();
+        const c = document.getElementById('usersContainer');
+        c.innerHTML = '';
+        list.forEach(u => {
+            const avatarUrl = u.avatar ? `/media/${u.avatar}` : 'https://via.placeholder.com/40';
+            c.innerHTML += `
+            <div class="user-row" onclick="pickUser('${u.login}', '${u.name}')">
+                <img src="${avatarUrl}" class="avatar">
+                <div><b>${u.name}</b><br><small>${u.login}</small></div>
+            </div>`;
+        });
+    }
+    function pickUser(login, name) {
+        chatTarget = login;
+        document.getElementById('chatTargetName').innerText = name;
+        showChatBox();
+    }
+    function showChatBox() {
+        document.getElementById('chatUserList').classList.add('hidden');
+        document.getElementById('chatInterface').classList.remove('hidden');
+        if(me.role === 'admin') document.getElementById('backBtn').classList.remove('hidden');
+        
+        loadMsgs();
+        chatInterval = setInterval(loadMsgs, 2000);
+    }
+    async function loadMsgs() {
+        if(!chatTarget) return;
+        let url = '/api/messages?target=' + (me.role==='admin' ? chatTarget : '');
+        const res = await fetch(url);
+        const msgs = await res.json();
+        const box = document.getElementById('msgBox');
+        
+        // Simple render (replace all)
+        box.innerHTML = msgs.map(m => {
+            const cls = m.from === me.login ? 'me' : 'other';
+            let content = `<div>${m.text}</div>`;
+            if(m.file) content += `<img src="/media/${m.file}" style="max-width:200px; border-radius:10px; margin-top:5px">`;
+            return `<div class="msg ${cls}">${content}</div>`;
+        }).join('');
+    }
+    async function sendMsg() {
+        const txt = document.getElementById('chatInput');
+        if(!txt.value) return;
+        const fd = new FormData();
+        fd.append('text', txt.value);
+        if(me.role === 'admin') fd.append('to', chatTarget);
+        await fetch('/api/messages', {method:'POST', body:fd});
+        txt.value = ''; loadMsgs();
+    }
+    async function sendFile() {
+        const f = document.getElementById('chatFile').files[0];
+        if(!f) return;
+        const fd = new FormData();
+        fd.append('file', f);
+        if(me.role === 'admin') fd.append('to', chatTarget);
+        await fetch('/api/messages', {method:'POST', body:fd});
+        loadMsgs();
+    }
+
+    // --- PROFILE ---
+    function openProfile() {
+        document.getElementById('profileModal').classList.remove('hidden');
+        document.getElementById('profName').value = me.name;
+        document.getElementById('profLang').value = me.lang;
+    }
+    async function saveProfile() {
+        const fd = new FormData();
+        fd.append('name', document.getElementById('profName').value);
+        fd.append('lang', document.getElementById('profLang').value);
+        const f = document.getElementById('profAva').files[0];
+        if(f) fd.append('avatar', f);
+        await fetch('/api/profile', {method:'POST', body:fd});
+        location.reload();
+    }
+    async function logout() { await fetch('/api/logout', {method:'POST'}); location.href='/'; }
+</script>
+</body>
+</html>
