@@ -1,203 +1,1559 @@
-<!DOCTYPE html>
-<html lang="ru">
+<!doctype html>
+<html lang="ru" data-lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>BoburGPT — чат</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="BoburGPT - AI Video Studio">
+  <title>BoburGPT - AI Video Studio</title>
   <style>
-    /* Общий фон */
+    :root {
+      color-scheme: dark;
+      --bg: #171100;
+      --bg-soft: #231a03;
+      --panel: rgba(42, 31, 5, 0.86);
+      --panel-2: rgba(255, 214, 74, 0.1);
+      --text: #fff8d4;
+      --muted: #dcc36b;
+      --line: rgba(255, 221, 91, 0.22);
+      --gold: #ffd23f;
+      --gold-2: #fff08a;
+      --gold-3: #c98b00;
+      --ink: #120d00;
+      --shadow: rgba(0, 0, 0, 0.34);
+      --max: 1160px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #0d1117;
-      color: #e6edf3;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 14% 10%, rgba(255, 210, 63, 0.24), transparent 28%),
+        radial-gradient(circle at 82% 28%, rgba(255, 240, 138, 0.16), transparent 30%),
+        linear-gradient(180deg, var(--bg), #0e0a00 72%);
+      color: var(--text);
+      font-family: "Segoe Print", "Comic Sans MS", "Bradley Hand ITC", cursive;
+      letter-spacing: 0;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 54px 54px;
+      opacity: 0.19;
+      mask-image: linear-gradient(to bottom, black, transparent 86%);
+      transform: translate3d(calc(var(--mx, 0) * -7px), calc(var(--my, 0) * -7px), 0);
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; cursor: pointer; }
+    svg { display: block; max-width: 100%; }
+
+    #scene3d {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      width: 100vw;
       height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      pointer-events: none;
+      opacity: 0.62;
     }
 
-    .chat-app {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      width: 100%;
-      max-width: 500px;
-      background: #161b22;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-    }
-
-    /* Шапка */
-    header {
-      background: #1f6feb;
-      padding: 15px;
-      text-align: center;
-      color: white;
-      font-size: 18px;
-      font-weight: bold;
-    }
-
-    /* Чат */
-    main {
-      flex: 1;
-      padding: 10px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      background: #0d1117;
-    }
-
-    /* Сообщения */
-    .message {
-      max-width: 75%;
-      padding: 10px 14px;
-      border-radius: 18px;
-      font-size: 15px;
-      line-height: 1.4;
-      animation: fadeIn 0.3s ease;
-      word-wrap: break-word;
-      white-space: pre-wrap;
-    }
-
-    .user {
-      align-self: flex-end;
-      background: #1f6feb;
-      color: white;
-      border-bottom-right-radius: 4px;
-    }
-
-    .bot {
-      align-self: flex-start;
-      background: #30363d;
-      color: #e6edf3;
-      border-bottom-left-radius: 4px;
-    }
-
-    /* Ввод */
+    .site-header,
+    main,
     footer {
-      padding: 10px;
-      background: #161b22;
-      border-top: 1px solid #30363d;
+      position: relative;
+      z-index: 2;
     }
 
-    .input-container {
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      border-bottom: 1px solid var(--line);
+      background: rgba(23, 17, 0, 0.82);
+      backdrop-filter: blur(18px);
+    }
+
+    .header-inner,
+    .wrap,
+    .footer-inner {
+      width: min(var(--max), calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .header-inner {
+      min-height: 70px;
       display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .brand svg { width: 38px; height: 38px; }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .nav a {
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: var(--muted);
+      transition: color 0.2s ease, background 0.2s ease;
+    }
+
+    .nav a:hover { color: var(--text); background: var(--panel-2); }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .lang-switcher {
+      display: inline-flex;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-2);
+    }
+
+    .lang-switcher button {
+      min-width: 38px;
+      height: 34px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 900;
+      transition: transform 0.2s ease, color 0.2s ease, background 0.2s ease;
+    }
+
+    .lang-switcher button.active,
+    .lang-switcher button:hover {
+      color: var(--text);
+      background: rgba(255, 210, 63, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .menu-button {
+      display: none;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-2);
+      color: var(--text);
+    }
+
+    .pill-button,
+    .ghost-button,
+    .mini-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 18px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      font-weight: 900;
+      transition: transform 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+    }
+
+    .pill-button {
+      color: var(--ink);
+      background: linear-gradient(135deg, var(--gold), var(--gold-2));
+      box-shadow: 0 18px 44px rgba(255, 210, 63, 0.16);
+    }
+
+    .ghost-button,
+    .mini-button {
+      color: var(--text);
+      background: var(--panel-2);
+      border-color: var(--line);
+    }
+
+    .pill-button:hover,
+    .ghost-button:hover,
+    .mini-button:hover {
+      transform: translateY(-3px);
+      border-color: var(--gold);
+    }
+
+    .mini-button { min-height: 36px; padding: 0 12px; font-size: 0.88rem; }
+
+    .hero {
+      min-height: calc(88svh - 70px);
+      display: grid;
+      grid-template-columns: minmax(0, 1.02fr) minmax(320px, 0.9fr);
+      align-items: center;
+      gap: 48px;
+      padding: 66px 0 42px;
+    }
+
+    .eyebrow {
+      margin: 0 0 16px;
+      color: var(--gold);
+      font-size: 0.82rem;
+      font-weight: 900;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      max-width: 760px;
+      margin-bottom: 18px;
+      font-size: clamp(4rem, 9vw, 8.2rem);
+      line-height: 0.86;
+      text-transform: uppercase;
+    }
+
+    h1 span {
+      display: block;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(255, 248, 212, 0.76);
+    }
+
+    .lead {
+      max-width: 700px;
+      color: var(--muted);
+      font-size: clamp(1.08rem, 1.7vw, 1.32rem);
+      line-height: 1.75;
+      margin-bottom: 28px;
+    }
+
+    .hero-actions,
+    .contact-actions,
+    .modal-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      max-width: 620px;
+      margin-top: 30px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--line);
+      overflow: hidden;
+    }
+
+    .metric { padding: 18px; background: rgba(23, 17, 0, 0.78); }
+    .metric strong { display: block; margin-bottom: 6px; font-size: 2rem; color: var(--gold-2); }
+    .metric span { color: var(--muted); font-size: 0.9rem; }
+
+    .hero-visual {
+      min-height: 500px;
+      display: grid;
+      place-items: center;
+      perspective: 1100px;
+    }
+
+    .model-stack {
+      position: relative;
+      width: min(100%, 500px);
+      aspect-ratio: 1;
+      transform-style: preserve-3d;
+      animation: floatStage 7s ease-in-out infinite;
+    }
+
+    .render-tower {
+      position: absolute;
+      inset: 15% 22% 18%;
+      transform-style: preserve-3d;
+      transform: rotateX(62deg) rotateZ(-32deg);
+    }
+
+    .slab {
+      position: absolute;
+      inset: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(255, 210, 63, 0.38), transparent 44%),
+        linear-gradient(315deg, rgba(255, 240, 138, 0.28), transparent 42%),
+        rgba(42, 31, 5, 0.86);
+      box-shadow: 0 28px 70px var(--shadow);
+      transform: translateZ(var(--z));
+      animation: slabLift 5.5s ease-in-out infinite;
+      animation-delay: var(--d);
+    }
+
+    .orbit-ring {
+      position: absolute;
+      inset: 8%;
+      border: 1px solid rgba(255, 210, 63, 0.42);
+      border-radius: 50%;
+      animation: orbitSpin 12s linear infinite;
+      transform-style: preserve-3d;
+    }
+
+    .orbit-ring:nth-child(2) {
+      inset: 14%;
+      border-color: rgba(255, 240, 138, 0.34);
+      animation-duration: 9s;
+      animation-direction: reverse;
+    }
+
+    .orbit-node {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      left: calc(50% - 8px);
+      top: -8px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 24px rgba(255, 210, 63, 0.8);
+    }
+
+    .mini-model {
+      position: absolute;
+      width: clamp(34px, 5vw, 58px);
+      aspect-ratio: 1;
+      left: var(--x);
+      top: var(--y);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--gold), rgba(255, 240, 138, 0.3));
+      box-shadow: 0 16px 32px var(--shadow);
+      animation: miniFloat 7s ease-in-out infinite;
+      animation-delay: var(--delay);
+    }
+
+    .mini-model::before,
+    .mini-model::after {
+      content: "";
+      position: absolute;
+      inset: 9px;
+      border: 1px solid rgba(255, 248, 212, 0.4);
+      border-radius: inherit;
+      transform: translateZ(18px) rotate(16deg);
+    }
+
+    .visual-label,
+    .video-card {
+      position: absolute;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(23, 17, 0, 0.78);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 22px 60px var(--shadow);
+    }
+
+    .visual-label {
+      left: 0;
+      top: 10%;
+      padding: 10px 12px;
+      color: var(--muted);
+      font-size: 0.86rem;
+      animation: cardDrift 6.8s ease-in-out infinite reverse;
+    }
+
+    .video-card {
+      right: 4%;
+      bottom: 12%;
+      width: 184px;
+      padding: 14px;
+      animation: cardDrift 6s ease-in-out infinite;
+    }
+
+    .thumb {
+      height: 58px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, var(--gold-3), var(--gold), var(--gold-2));
+      margin-bottom: 12px;
+      position: relative;
+    }
+
+    .thumb::after {
+      content: "";
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-35%);
+      border-top: 11px solid transparent;
+      border-bottom: 11px solid transparent;
+      border-left: 17px solid var(--ink);
+    }
+
+    .line {
+      height: 7px;
+      border-radius: 999px;
+      background: rgba(255, 210, 63, 0.18);
+      margin-bottom: 8px;
+    }
+
+    .motion-strip {
+      border-block: 1px solid var(--line);
+      overflow: hidden;
+      background: rgba(42, 31, 5, 0.64);
+    }
+
+    .ticker {
+      display: flex;
+      width: max-content;
+      animation: ticker 32s linear infinite;
+    }
+
+    .ticker span {
+      padding: 15px 24px;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      white-space: nowrap;
+    }
+
+    section { padding: 88px 0; }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(260px, 0.52fr);
+      gap: 30px;
+      align-items: end;
+      margin-bottom: 34px;
+    }
+
+    .kicker {
+      margin-bottom: 10px;
+      color: var(--gold);
+      text-transform: uppercase;
+      font-size: 0.78rem;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+    }
+
+    h2 {
+      margin-bottom: 0;
+      font-size: clamp(2.2rem, 5vw, 4.4rem);
+      line-height: 0.96;
+      text-transform: uppercase;
+    }
+
+    .section-copy,
+    .card p,
+    .why-card p,
+    .step p,
+    .contact-panel p {
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .services-grid,
+    .steps,
+    .why-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .services-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .steps { grid-template-columns: repeat(3, minmax(0, 1fr)); counter-reset: step; }
+    .why-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card,
+    .step,
+    .why-card,
+    .calculator,
+    .contact-panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 24px 70px var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    .card {
+      min-height: 360px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 22px;
+      overflow: hidden;
+      transition: transform 0.22s ease, border-color 0.22s ease;
+    }
+
+    .card:hover,
+    .step:hover,
+    .why-card:hover {
+      transform: translateY(-6px);
+      border-color: var(--gold);
+    }
+
+    .service-art {
+      min-height: 140px;
+      display: grid;
+      place-items: center;
+      margin: -6px -6px 18px;
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(255, 210, 63, 0.22), transparent),
+        var(--panel-2);
+      overflow: hidden;
+    }
+
+    .service-art svg {
+      width: min(84%, 230px);
+      height: 120px;
+      filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.22));
+      animation: svgHover 5s ease-in-out infinite;
+    }
+
+    .card h3,
+    .step h3,
+    .why-card h3 { margin-bottom: 10px; font-size: 1.22rem; }
+
+    .card-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .price { color: var(--gold-2); font-weight: 900; }
+
+    .process {
+      background: linear-gradient(180deg, transparent, rgba(35, 26, 3, 0.72), transparent);
+    }
+
+    .step {
+      padding: 26px;
+      overflow: hidden;
+      transition: transform 0.22s ease, border-color 0.22s ease;
+    }
+
+    .step::before {
+      counter-increment: step;
+      content: "0" counter(step);
+      display: block;
+      margin-bottom: 26px;
+      color: var(--gold);
+      font-weight: 900;
+      letter-spacing: 0.12em;
+    }
+
+    .step svg { width: 100%; height: 140px; margin-bottom: 20px; }
+
+    .pricing-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(320px, 0.68fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .price-list { display: grid; gap: 10px; }
+
+    .price-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-2);
+    }
+
+    .price-row span { color: var(--muted); }
+    .price-row b { color: var(--gold-2); white-space: nowrap; }
+
+    .calculator { padding: 22px; position: sticky; top: 94px; }
+
+    .control-label {
+      display: block;
+      margin: 18px 0 8px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
     }
 
-    input {
-      flex: 1;
-      padding: 12px;
-      border-radius: 20px;
-      border: none;
-      background: #0d1117;
-      color: #e6edf3;
-      outline: none;
-      font-size: 15px;
+    .segmented button {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text);
     }
 
-    button {
-      padding: 12px 18px;
-      border: none;
-      border-radius: 50%;
-      background: #1f6feb;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-      transition: 0.2s;
+    .segmented button.active {
+      border-color: var(--gold);
+      background: rgba(255, 210, 63, 0.16);
     }
 
-    button:hover {
-      background: #388bfd;
+    .estimate {
+      margin: 22px 0;
+      padding: 20px;
+      border-radius: 8px;
+      background: rgba(255, 210, 63, 0.12);
     }
 
-    /* Анимация появления */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+    .estimate span { display: block; color: var(--muted); margin-bottom: 6px; }
+    .estimate strong { color: var(--gold-2); font-size: clamp(1.8rem, 4vw, 2.6rem); }
+
+    .why-card { padding: 22px; min-height: 220px; transition: transform 0.22s ease, border-color 0.22s ease; }
+
+    .why-icon {
+      width: 54px;
+      height: 54px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 28px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-2);
+      color: var(--gold);
+    }
+
+    .why-icon svg { width: 28px; height: 28px; }
+
+    .contact-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 0.54fr);
+      gap: 28px;
+      align-items: center;
+      padding: 32px;
+    }
+
+    .contact-art { min-height: 300px; display: grid; place-items: center; }
+    .contact-art svg { width: min(100%, 360px); animation: svgHover 5s ease-in-out infinite; }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 34px 0 48px;
+      color: var(--muted);
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .welcome-backdrop,
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      place-items: center;
+      padding: 18px;
+      background: rgba(10, 7, 0, 0.74);
+      backdrop-filter: blur(18px);
+    }
+
+    .welcome-backdrop.open,
+    .modal-backdrop.open { display: grid; animation: fadeIn 0.2s ease; }
+
+    .welcome-card,
+    .modal {
+      width: min(100%, 560px);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: clamp(22px, 4vw, 34px);
+      background: rgba(35, 26, 3, 0.96);
+      box-shadow: 0 34px 110px var(--shadow);
+    }
+
+    .welcome-card h2,
+    .modal h3 {
+      margin-bottom: 12px;
+      font-size: clamp(2rem, 6vw, 3.6rem);
+    }
+
+    .welcome-card p,
+    .modal p { color: var(--muted); line-height: 1.65; }
+
+    .welcome-label {
+      display: block;
+      margin: 24px 0 10px;
+      color: var(--muted);
+      font-weight: 900;
+    }
+
+    .welcome-options {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .welcome-option {
+      min-height: 54px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-2);
+      color: var(--text);
+      font-weight: 900;
+    }
+
+    .welcome-option.active,
+    .welcome-option:hover {
+      border-color: var(--gold);
+      background: rgba(255, 210, 63, 0.2);
+    }
+
+    .welcome-start { width: 100%; margin-top: 26px; }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    @keyframes floatStage {
+      0%, 100% { transform: translateY(0) rotateX(0deg); }
+      50% { transform: translateY(-16px) rotateX(3deg); }
+    }
+    @keyframes slabLift { 0%, 100% { translate: 0 0; } 50% { translate: 0 -16px; } }
+    @keyframes orbitSpin { to { transform: rotateX(68deg) rotateZ(360deg); } }
+    @keyframes miniFloat {
+      0%, 100% { transform: translate3d(0, 0, 0) rotateX(58deg) rotateZ(0deg); }
+      50% { transform: translate3d(0, -16px, 40px) rotateX(58deg) rotateZ(18deg); }
+    }
+    @keyframes cardDrift {
+      0%, 100% { transform: translate3d(0, 0, 60px); }
+      50% { transform: translate3d(-12px, -16px, 90px); }
+    }
+    @keyframes ticker { to { transform: translateX(-50%); } }
+    @keyframes svgHover {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-8px) rotate(-1deg); }
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    @media (max-width: 980px) {
+      .menu-button { display: grid; }
+      .nav {
+        position: fixed;
+        top: 70px;
+        left: 16px;
+        right: 16px;
+        display: grid;
+        padding: 10px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--bg-soft);
+        box-shadow: 0 30px 90px var(--shadow);
+        opacity: 0;
+        transform: translateY(-12px);
+        pointer-events: none;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+      }
+      .nav.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+      .nav a { padding: 13px 12px; }
+      .hero,
+      .section-head,
+      .pricing-layout,
+      .contact-panel { grid-template-columns: 1fr; }
+      .hero { min-height: auto; padding-top: 52px; }
+      .hero-visual { min-height: 420px; order: -1; }
+      .services-grid,
+      .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .why-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .calculator { position: relative; top: 0; }
+    }
+
+    @media (max-width: 640px) {
+      .header-inner { width: min(var(--max), calc(100% - 20px)); gap: 8px; }
+      .brand { gap: 8px; font-size: 0.96rem; }
+      .brand svg { width: 32px; height: 32px; }
+      .header-actions .pill-button { display: none; }
+      .lang-switcher { gap: 2px; padding: 3px; }
+      .lang-switcher button { min-width: 32px; height: 32px; font-size: 0.78rem; }
+      .menu-button { width: 38px; height: 38px; }
+      h1 { font-size: clamp(2.9rem, 17vw, 4.6rem); }
+      .metrics,
+      .services-grid,
+      .steps,
+      .why-grid { grid-template-columns: 1fr; }
+      .hero-visual { min-height: 300px; }
+      .model-stack { width: min(100%, 360px); }
+      .video-card { right: 0; bottom: 4%; width: 140px; }
+      .visual-label { left: 2%; top: 3%; }
+      .welcome-options,
+      .segmented { grid-template-columns: 1fr; }
+      .price-row { grid-template-columns: 1fr; }
+      .contact-panel { padding: 22px; }
+      section { padding: 66px 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="chat-app">
-    <header>
-      <h1>BoburGPT 🤖</h1>
-    </header>
+  <canvas id="scene3d" aria-hidden="true"></canvas>
 
-    <main id="chat-box"></main>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="#top" aria-label="BoburGPT">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <defs>
+            <linearGradient id="logoGrad" x1="7" y1="6" x2="42" y2="43" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#ffd23f"/>
+              <stop offset="0.62" stop-color="#fff08a"/>
+              <stop offset="1" stop-color="#c98b00"/>
+            </linearGradient>
+          </defs>
+          <path fill="none" stroke="url(#logoGrad)" stroke-width="3" d="M24 4 42 14v20L24 44 6 34V14L24 4Z"/>
+          <path fill="none" stroke="url(#logoGrad)" stroke-width="3" stroke-linecap="round" d="M16 19h13.5a5.5 5.5 0 0 1 0 11H16V13h12a5 5 0 0 1 0 10H16"/>
+          <path fill="#fff8d4" d="M35 21 40 24l-5 3v-6Z" opacity=".9"/>
+        </svg>
+        <span>BoburGPT</span>
+      </a>
 
-    <footer>
-      <div class="input-container">
-        <input type="text" id="user-input" placeholder="Напиши сообщение..." onkeypress="if(event.key==='Enter'){sendMessage()}">
-        <button onclick="sendMessage()">➤</button>
+      <nav class="nav" id="nav" aria-label="Navigation"></nav>
+
+      <div class="header-actions">
+        <div class="lang-switcher" id="headerLang" aria-label="Language">
+          <button type="button" data-lang="ru">RU</button>
+          <button type="button" data-lang="uz">UZ</button>
+          <button type="button" data-lang="en">EN</button>
+        </div>
+        <a class="pill-button" href="https://t.me/SmileUZB_TG" target="_blank" rel="noreferrer" data-i18n="telegram">Telegram</a>
+        <button class="menu-button" id="menuToggle" type="button" aria-label="Menu">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
       </div>
-    </footer>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero wrap">
+      <div class="hero-copy reveal">
+        <p class="eyebrow" data-i18n="heroTag">AI Video Studio</p>
+        <h1>Bobur<span>GPT</span></h1>
+        <p class="lead" data-i18n="heroLead"></p>
+        <div class="hero-actions">
+          <a class="pill-button" href="#services" data-i18n="viewServices"></a>
+          <button class="ghost-button" type="button" data-order-key="custom" data-i18n="discussProject"></button>
+        </div>
+        <div class="metrics" id="metrics"></div>
+      </div>
+
+      <div class="hero-visual" aria-hidden="true">
+        <div class="model-stack">
+          <span class="mini-model" style="--x:4%;--y:18%;--delay:-.4s"></span>
+          <span class="mini-model" style="--x:78%;--y:8%;--delay:-1.2s"></span>
+          <span class="mini-model" style="--x:14%;--y:72%;--delay:-2.4s"></span>
+          <span class="mini-model" style="--x:82%;--y:62%;--delay:-3.2s"></span>
+          <span class="mini-model" style="--x:46%;--y:0%;--delay:-4.1s"></span>
+          <span class="mini-model" style="--x:52%;--y:82%;--delay:-5.3s"></span>
+          <div class="orbit-ring"><span class="orbit-node"></span></div>
+          <div class="orbit-ring"><span class="orbit-node"></span></div>
+          <div class="render-tower">
+            <span class="slab" style="--z:0px;--d:0s"></span>
+            <span class="slab" style="--z:58px;--d:-.9s"></span>
+            <span class="slab" style="--z:116px;--d:-1.8s"></span>
+          </div>
+          <div class="visual-label">AI video studio</div>
+          <div class="video-card">
+            <div class="thumb"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="motion-strip" aria-hidden="true">
+      <div class="ticker" id="ticker"></div>
+    </div>
+
+    <section id="services">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div>
+            <p class="kicker" data-i18n="servicesKicker"></p>
+            <h2 data-i18n="servicesTitle"></h2>
+          </div>
+          <p class="section-copy" data-i18n="servicesCopy"></p>
+        </div>
+        <div class="services-grid" id="servicesGrid"></div>
+      </div>
+    </section>
+
+    <section class="process" id="process">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div>
+            <p class="kicker" data-i18n="processKicker"></p>
+            <h2 data-i18n="processTitle"></h2>
+          </div>
+          <p class="section-copy" data-i18n="processCopy"></p>
+        </div>
+        <div class="steps" id="stepsGrid"></div>
+      </div>
+    </section>
+
+    <section id="pricing">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div>
+            <p class="kicker" data-i18n="pricingKicker"></p>
+            <h2 data-i18n="pricingTitle"></h2>
+          </div>
+          <p class="section-copy" data-i18n="pricingCopy"></p>
+        </div>
+        <div class="pricing-layout">
+          <div class="price-list reveal" id="priceList"></div>
+          <aside class="calculator reveal">
+            <h3 data-i18n="calcTitle"></h3>
+            <label class="control-label" data-i18n="videoType"></label>
+            <div class="segmented" id="serviceControl"></div>
+            <label class="control-label" data-i18n="duration"></label>
+            <div class="segmented" id="durationControl"></div>
+            <div class="estimate">
+              <span data-i18n="estimateFrom"></span>
+              <strong id="estimateValue"></strong>
+            </div>
+            <button class="pill-button" type="button" id="estimateOrder" data-i18n="orderEstimate"></button>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section id="why">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div>
+            <p class="kicker" data-i18n="whyKicker"></p>
+            <h2 data-i18n="whyTitle"></h2>
+          </div>
+          <p class="section-copy" data-i18n="whyCopy"></p>
+        </div>
+        <div class="why-grid" id="whyGrid"></div>
+      </div>
+    </section>
+
+    <section id="contact">
+      <div class="wrap">
+        <div class="contact-panel reveal">
+          <div>
+            <p class="kicker" data-i18n="contactKicker"></p>
+            <h2 data-i18n="contactTitle"></h2>
+            <p data-i18n="contactCopy"></p>
+            <div class="contact-actions">
+              <a class="pill-button" href="https://t.me/SmileUZB_TG" target="_blank" rel="noreferrer" data-i18n="writeTg"></a>
+              <button class="ghost-button" type="button" data-order-key="consult" data-i18n="consult"></button>
+            </div>
+          </div>
+          <div class="contact-art" aria-hidden="true" id="contactArt"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <strong>BoburGPT - AI Video Studio</strong>
+      <span data-i18n="footerCopy"></span>
+    </div>
+  </footer>
+
+  <div class="welcome-backdrop" id="welcomeModal" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+    <div class="welcome-card">
+      <h2 id="welcomeTitle"></h2>
+      <p id="welcomeText"></p>
+      <div class="welcome-group">
+        <span class="welcome-label" id="languageLabel"></span>
+        <div class="welcome-options" id="languageOptions">
+          <button class="welcome-option" type="button" data-lang="ru">Русский</button>
+          <button class="welcome-option" type="button" data-lang="uz">O'zbek</button>
+          <button class="welcome-option" type="button" data-lang="en">English</button>
+        </div>
+      </div>
+      <button class="pill-button welcome-start" type="button" id="welcomeStart"></button>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="orderModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <h3 id="modalTitle"></h3>
+      <p id="modalText"></p>
+      <div class="modal-actions">
+        <a class="pill-button" id="modalTelegram" href="https://t.me/SmileUZB_TG" target="_blank" rel="noreferrer"></a>
+        <button class="ghost-button" type="button" id="modalClose"></button>
+      </div>
+    </div>
   </div>
 
   <script>
-    const API_KEY = "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"; // вставь свой ключ
-    const API_URL = "https://api.groq.com/openai/v1/chat/completions";
+    const root = document.documentElement;
+    const nav = document.getElementById("nav");
+    const menuToggle = document.getElementById("menuToggle");
+    const headerLang = document.getElementById("headerLang");
+    const languageOptions = document.getElementById("languageOptions");
+    const welcomeModal = document.getElementById("welcomeModal");
+    const welcomeStart = document.getElementById("welcomeStart");
+    const modal = document.getElementById("orderModal");
+    const modalText = document.getElementById("modalText");
+    const modalTelegram = document.getElementById("modalTelegram");
+    const modalClose = document.getElementById("modalClose");
+    const estimateValue = document.getElementById("estimateValue");
+    const tgUser = "SmileUZB_TG";
 
-    async function sendMessage() {
-      const input = document.getElementById("user-input");
-      const chatBox = document.getElementById("chat-box");
+    const art = {
+      ad: '<svg viewBox="0 0 260 150" fill="none"><rect x="36" y="30" width="150" height="88" rx="14" fill="#2b2104" stroke="#ffd23f" stroke-width="4"/><path d="M186 58 226 38v74l-40-20V58Z" fill="#c98b00" stroke="#fff08a" stroke-width="4"/><path d="M86 57h34l24 18-24 18H86V57Z" fill="#fff08a" opacity=".9"/><path d="M58 130h105" stroke="#ffd23f" stroke-width="5" stroke-linecap="round"/></svg>',
+      product: '<svg viewBox="0 0 260 150" fill="none"><path d="M130 18 205 58v72l-75-40-75 40V58l75-40Z" fill="#2b2104" stroke="#ffd23f" stroke-width="4"/><path d="M55 58 130 99l75-41M130 18v81" stroke="#fff08a" stroke-width="4"/><path d="M100 44h58M86 115h88" stroke="#c98b00" stroke-width="5" stroke-linecap="round"/></svg>',
+      social: '<svg viewBox="0 0 260 150" fill="none"><rect x="72" y="12" width="116" height="126" rx="22" fill="#2b2104" stroke="#ffd23f" stroke-width="4"/><rect x="88" y="32" width="84" height="62" rx="10" fill="#c98b00"/><path d="M112 111h36M114 62l16-12 16 12-16 12-16-12Z" stroke="#fff8d4" stroke-width="4" stroke-linejoin="round"/><path d="M52 42h28M180 104h30" stroke="#fff08a" stroke-width="5" stroke-linecap="round"/></svg>',
+      edu: '<svg viewBox="0 0 260 150" fill="none"><path d="M38 54 130 20l92 34-92 34-92-34Z" fill="#2b2104" stroke="#ffd23f" stroke-width="4"/><path d="M70 75v34c34 24 86 24 120 0V75" stroke="#fff08a" stroke-width="4"/><path d="M222 55v50" stroke="#c98b00" stroke-width="4" stroke-linecap="round"/><circle cx="222" cy="116" r="8" fill="#ffd23f"/></svg>',
+      premium: '<svg viewBox="0 0 260 150" fill="none"><path d="M48 110 88 36l42 74 42-74 40 74H48Z" fill="#2b2104" stroke="#ffd23f" stroke-width="4" stroke-linejoin="round"/><path d="M72 110h116M98 79h64" stroke="#fff08a" stroke-width="5" stroke-linecap="round"/><circle cx="88" cy="36" r="10" fill="#fff08a"/><circle cx="172" cy="36" r="10" fill="#c98b00"/></svg>',
+      custom: '<svg viewBox="0 0 260 150" fill="none"><path d="M54 110c24-54 57-82 99-82 27 0 47 12 63 35" stroke="#ffd23f" stroke-width="5" stroke-linecap="round"/><path d="M68 112h122" stroke="#fff08a" stroke-width="5" stroke-linecap="round"/><path d="M145 48h34v34h-34z" fill="#c98b00" stroke="#ffd23f" stroke-width="4"/><circle cx="90" cy="86" r="17" fill="#fff08a"/></svg>',
+      contact: '<svg viewBox="0 0 420 360" fill="none"><path d="M210 40 342 116v152L210 344 78 268V116L210 40Z" fill="#2b2104" stroke="#ffd23f" stroke-width="5"/><path d="M78 116 210 192l132-76M210 192v152" stroke="#fff08a" stroke-width="5"/><path d="M164 116h90a36 36 0 0 1 0 72h-90V80h80a32 32 0 0 1 0 64h-80" stroke="#c98b00" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><circle cx="312" cy="250" r="22" fill="#fff08a"/><circle cx="106" cy="228" r="16" fill="#ffd23f"/></svg>',
+      script: '<svg viewBox="0 0 320 180" fill="none"><rect x="34" y="36" width="252" height="112" rx="12" fill="#2b2104" stroke="#ffd23f" stroke-width="4"/><path d="M62 68h112M62 96h168M62 124h92" stroke="#fff08a" stroke-width="5" stroke-linecap="round"/><path d="M220 48l34 20-34 20V48Z" fill="#c98b00"/></svg>',
+      visual: '<svg viewBox="0 0 320 180" fill="none"><path d="M70 130 130 42l46 58 30-34 46 64H70Z" fill="#2b2104" stroke="#ffd23f" stroke-width="4"/><circle cx="230" cy="56" r="18" fill="#fff08a"/><path d="M70 130h180" stroke="#c98b00" stroke-width="5" stroke-linecap="round"/></svg>',
+      edit: '<svg viewBox="0 0 320 180" fill="none"><rect x="48" y="52" width="224" height="92" rx="12" fill="#2b2104" stroke="#ffd23f" stroke-width="4"/><path d="M78 112h42l18-40 32 58 24-38 20 20h28" stroke="#fff08a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M78 78h44" stroke="#c98b00" stroke-width="5" stroke-linecap="round"/></svg>'
+    };
 
-      const userMessage = input.value.trim();
-      if (!userMessage) return;
-
-      addMessage(userMessage, "user");
-      input.value = "";
-
-      // показать "печатает..."
-      const typing = document.createElement("div");
-      typing.classList.add("message", "bot");
-      typing.textContent = "BoburGPT печатает...";
-      chatBox.appendChild(typing);
-      chatBox.scrollTop = chatBox.scrollHeight;
-
-      try {
-        const response = await fetch(API_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${API_KEY}`
-          },
-          body: JSON.stringify({
-            model: "llama-3.1-8b-instant",
-            messages: [
-              { role: "system", content: "Ты — умный ассистент по имени BoburGPT. Никогда не называй себя другим именем." },
-              { role: "user", content: userMessage }
-            ]
-          })
-        });
-
-        const data = await response.json();
-        typing.remove();
-
-        if (data.choices && data.choices.length > 0) {
-          const botMessage = data.choices[0].message.content;
-          addMessage(botMessage, "bot");
-        } else {
-          addMessage("⚠️ Ошибка: нет ответа от модели", "bot");
-        }
-      } catch (error) {
-        typing.remove();
-        addMessage("⚠️ Ошибка: " + error.message, "bot");
+    const dict = {
+      ru: {
+        nav: [["#services","Услуги"],["#process","Процесс"],["#pricing","Цены"],["#why","Почему"],["#contact","Контакт"]],
+        telegram: "Telegram",
+        heroTag: "AI Video Studio",
+        heroLead: "Создаю рекламные, продуктовые и социальные AI-видео без съемочной группы: сценарий, визуальный стиль, монтаж, озвучка и готовый ролик под вашу задачу.",
+        viewServices: "Посмотреть услуги",
+        discussProject: "Обсудить проект",
+        metrics: [["2+","года опыта в AI-видео"],["3","языка: RU, UZ, EN"],["1-2","дня на быстрый запуск"]],
+        ticker: ["AI-видео", "Сценарий", "Монтаж", "Реклама", "Озвучка"],
+        servicesKicker: "Каталог",
+        servicesTitle: "Услуги для видео",
+        servicesCopy: "Каждая карточка ведет к быстрому заказу в Telegram. Стиль можно собрать под бренд, товар, личный блог или учебный проект.",
+        services: [
+          ["ad","Рекламное видео","Короткий ролик для бизнеса, магазина или услуги с четким оффером и динамичной подачей.","от 50 000 сум"],
+          ["product","Презентация продукта","Показываю ценность товара через сцены, преимущества и аккуратный призыв к действию.","от 90 000 сум"],
+          ["social","Видео для соцсетей","Форматы для TikTok, Reels и Shorts: быстрый хук, плотный монтаж, субтитры и ритм.","от 50 000 сум"],
+          ["edu","Обучающее видео","Объясняющие ролики для курсов, инструкций и презентаций сложных тем простым языком.","от 130 000 сум"],
+          ["premium","Premium видео","Длинные имиджевые и корпоративные ролики с глубокой структурой и детальной сборкой.","200 000 сум/мин"],
+          ["custom","Индивидуальный заказ","Если идея нестандартная, можно собрать отдельную структуру, стиль, тайминг и пакет работ.","по договоренности"]
+        ],
+        order: "Заказать",
+        processKicker: "Процесс",
+        processTitle: "От идеи до ролика",
+        processCopy: "Сайт показывает не только прайс, а ощущение студии: сценарий, визуал, монтаж и готовый результат в одном потоке.",
+        steps: [
+          ["script","Сценарий","Сначала фиксируем цель, аудиторию и главный оффер, чтобы ролик не был просто красивой нарезкой."],
+          ["visual","Визуал","Подбираем стиль сцен, цвет, движение, темп и 3D-слои под задачу проекта."],
+          ["edit","Монтаж","Собираем финальный ритм, текст, озвучку и экспорт под соцсети, сайт или презентацию."]
+        ],
+        pricingKicker: "Прайс",
+        pricingTitle: "Цены и расчет",
+        pricingCopy: "Базовые цены оставлены из текущего сайта, а быстрый расчет помогает клиенту понять стартовый бюджет.",
+        prices: [["15-30 секунд","Рекламные и социальные ролики","от 50 000 сум"],["30-60 секунд","Продуктовая презентация или оффер","от 90 000 сум"],["1-2 минуты","Обучающее видео или подробный рассказ","от 130 000 сум"],["2+ минуты","Premium ролик с расширенной сборкой","200 000 сум/мин"]],
+        calcTitle: "Быстрый расчет",
+        videoType: "Тип видео",
+        duration: "Длительность",
+        kinds: [["ad","Реклама"],["product","Продукт"],["social","Соцсети"],["edu","Обучение"]],
+        durations: [["short","15-30 сек"],["medium","30-60 сек"],["long","1-2 мин"],["premium","2+ мин"]],
+        estimateFrom: "Ориентир от",
+        orderEstimate: "Заказать расчет",
+        sum: "сум",
+        budget: "бюджет от",
+        whyKicker: "Почему",
+        whyTitle: "Сильная подача",
+        whyCopy: "BoburGPT выглядит как AI-студия: понятно, быстро, визуально цельно и без лишних деталей.",
+        why: [["Быстро","Можно стартовать с короткого сценария и получить ролик без долгой подготовки площадки."],["Под платформы","Сразу думаем о формате: вертикально, горизонтально, коротко, подробно или серией."],["3D глубина","Фон и hero-сцена используют кодовую 3D-модель, поэтому все остается в одном файле."],["Гибко","Можно менять тон, язык, стиль, длительность и сложность под конкретную задачу."]],
+        contactKicker: "Контакт",
+        contactTitle: "Готов собрать ролик",
+        contactCopy: "Напишите Бобуру в Telegram: можно отправить нишу, идею, ссылку на товар, референс или просто спросить, какой формат подойдет лучше.",
+        writeTg: "Написать в Telegram",
+        consult: "Получить консультацию",
+        footerCopy: "2026. AI Video Studio для быстрых и стильных роликов.",
+        welcomeTitle: "Выберите язык",
+        welcomeText: "Перед входом выберите язык сайта. Потом его можно поменять в шапке.",
+        languageLabel: "Язык",
+        enter: "Войти на сайт",
+        modalTitle: "Подтвердите заказ",
+        modalPrefix: "Вы действительно хотите заказать",
+        modalHelp: "Если да, откроется Telegram с уже готовым текстом.",
+        modalYes: "Да, открыть Telegram",
+        modalNo: "Нет, закрыть",
+        modalMessage: "Здравствуйте! Хочу заказать: {service}. Расскажите, пожалуйста, детали и цену."
+      },
+      uz: {
+        nav: [["#services","Xizmatlar"],["#process","Jarayon"],["#pricing","Narxlar"],["#why","Nega"],["#contact","Aloqa"]],
+        telegram: "Telegram",
+        heroTag: "AI Video Studio",
+        heroLead: "Reklama, mahsulot va ijtimoiy tarmoqlar uchun AI-video yarataman: ssenariy, vizual uslub, montaj, ovoz va tayyor rolik.",
+        viewServices: "Xizmatlarni ko'rish",
+        discussProject: "Loyihani muhokama qilish",
+        metrics: [["2+","yil AI-video tajribasi"],["3","til: RU, UZ, EN"],["1-2","kunda tez start"]],
+        ticker: ["AI-video", "Ssenariy", "Montaj", "Reklama", "Ovoz"],
+        servicesKicker: "Katalog",
+        servicesTitle: "Video xizmatlar",
+        servicesCopy: "Har bir karta Telegram orqali tez buyurtmaga olib boradi. Uslubni brend, mahsulot, blog yoki o'quv loyiha uchun moslash mumkin.",
+        services: [
+          ["ad","Reklama video","Biznes, do'kon yoki xizmat uchun aniq taklif va dinamik taqdimotga ega qisqa rolik.","50 000 so'mdan"],
+          ["product","Mahsulot taqdimoti","Mahsulot qiymatini sahnalar, afzalliklar va aniq chaqiriq orqali ko'rsataman.","90 000 so'mdan"],
+          ["social","Ijtimoiy tarmoq videosi","TikTok, Reels va Shorts uchun: tez hook, zich montaj, subtitr va ritm.","50 000 so'mdan"],
+          ["edu","Ta'lim videosi","Kurs, yo'riqnoma va murakkab mavzular uchun sodda tushuntiruvchi roliklar.","130 000 so'mdan"],
+          ["premium","Premium video","Uzun imij va korporativ roliklar: chuqur tuzilma va batafsil yig'ish.","200 000 so'm/daq"],
+          ["custom","Individual buyurtma","Nostandart g'oya bo'lsa, alohida tuzilma, uslub, timing va ish paketini yig'amiz.","kelishilgan narxda"]
+        ],
+        order: "Buyurtma",
+        processKicker: "Jarayon",
+        processTitle: "G'oyadan rolikgacha",
+        processCopy: "Sayt faqat narxni emas, studiya hissini ko'rsatadi: ssenariy, vizual, montaj va tayyor natija bir oqimda.",
+        steps: [
+          ["script","Ssenariy","Avval maqsad, auditoriya va asosiy taklifni belgilaymiz, rolik shunchaki chiroyli kesma bo'lib qolmaydi."],
+          ["visual","Vizual","Loyiha vazifasiga mos sahna uslubi, rang, harakat, temp va 3D qatlamlarni tanlaymiz."],
+          ["edit","Montaj","Yakuniy ritm, matn, ovoz va eksportni ijtimoiy tarmoq, sayt yoki taqdimot uchun yig'amiz."]
+        ],
+        pricingKicker: "Narx",
+        pricingTitle: "Narxlar va hisob",
+        pricingCopy: "Asosiy narxlar saqlangan, tez hisob esa mijozga boshlang'ich budjetni tushunishga yordam beradi.",
+        prices: [["15-30 soniya","Reklama va ijtimoiy roliklar","50 000 so'mdan"],["30-60 soniya","Mahsulot taqdimoti yoki taklif","90 000 so'mdan"],["1-2 daqiqa","Ta'lim videosi yoki batafsil hikoya","130 000 so'mdan"],["2+ daqiqa","Kengaytirilgan Premium rolik","200 000 so'm/daq"]],
+        calcTitle: "Tez hisob",
+        videoType: "Video turi",
+        duration: "Davomiylik",
+        kinds: [["ad","Reklama"],["product","Mahsulot"],["social","Ijtimoiy"],["edu","Ta'lim"]],
+        durations: [["short","15-30 son"],["medium","30-60 son"],["long","1-2 daq"],["premium","2+ daq"]],
+        estimateFrom: "Taxminan",
+        orderEstimate: "Hisobni buyurtma qilish",
+        sum: "so'm",
+        budget: "budjet",
+        whyKicker: "Nega",
+        whyTitle: "Kuchli taqdimot",
+        whyCopy: "BoburGPT AI-studiya kabi ko'rinadi: tushunarli, tez, vizual jihatdan uyg'un va ortiqcha detalsiz.",
+        why: [["Tez","Qisqa ssenariy bilan start qilib, uzoq tayyorgarliksiz rolik olish mumkin."],["Platformaga mos","Darhol format haqida o'ylaymiz: vertikal, gorizontal, qisqa, batafsil yoki seriya."],["3D chuqurlik","Fon va hero-sahna kodli 3D modeldan foydalanadi, shuning uchun hammasi bitta faylda qoladi."],["Moslashuvchan","Ohang, til, uslub, davomiylik va murakkablikni aniq vazifaga moslash mumkin."]],
+        contactKicker: "Aloqa",
+        contactTitle: "Rolikni tayyorlaymiz",
+        contactCopy: "Boburga Telegram orqali yozing: soha, g'oya, mahsulot havolasi, referens yoki qaysi format mosligini so'rashingiz mumkin.",
+        writeTg: "Telegram'da yozish",
+        consult: "Maslahat olish",
+        footerCopy: "2026. Tez va zamonaviy roliklar uchun AI Video Studio.",
+        welcomeTitle: "Tilni tanlang",
+        welcomeText: "Saytga kirishdan oldin tilni tanlang. Keyin uni yuqoridagi tugmalar orqali almashtirish mumkin.",
+        languageLabel: "Til",
+        enter: "Saytga kirish",
+        modalTitle: "Buyurtmani tasdiqlang",
+        modalPrefix: "Haqiqatan ham buyurtma bermoqchimisiz",
+        modalHelp: "Agar ha bo'lsa, Telegram tayyor matn bilan ochiladi.",
+        modalYes: "Ha, Telegram ochilsin",
+        modalNo: "Yo'q, yopish",
+        modalMessage: "Assalomu alaykum! Buyurtma bermoqchiman: {service}. Tafsilot va narxni ayting."
+      },
+      en: {
+        nav: [["#services","Services"],["#process","Process"],["#pricing","Pricing"],["#why","Why"],["#contact","Contact"]],
+        telegram: "Telegram",
+        heroTag: "AI Video Studio",
+        heroLead: "I create AI videos for ads, products and social media: script, visual style, editing, voice and a finished video for your goal.",
+        viewServices: "View services",
+        discussProject: "Discuss project",
+        metrics: [["2+","years of AI-video work"],["3","languages: RU, UZ, EN"],["1-2","days for a fast start"]],
+        ticker: ["AI video", "Script", "Editing", "Ads", "Voice"],
+        servicesKicker: "Catalog",
+        servicesTitle: "Video services",
+        servicesCopy: "Every card leads to a quick Telegram order. The style can be adapted for a brand, product, personal blog or learning project.",
+        services: [
+          ["ad","Ad video","A short video for a business, shop or service with a clear offer and dynamic delivery.","from 50,000 UZS"],
+          ["product","Product presentation","I show product value through scenes, benefits and a clean call to action.","from 90,000 UZS"],
+          ["social","Social media video","Formats for TikTok, Reels and Shorts: fast hook, tight edit, subtitles and rhythm.","from 50,000 UZS"],
+          ["edu","Educational video","Explainer videos for courses, guides and complex topics in simple language.","from 130,000 UZS"],
+          ["premium","Premium video","Long image and corporate videos with deeper structure and detailed assembly.","200,000 UZS/min"],
+          ["custom","Custom order","For a non-standard idea, we can build a separate structure, style, timing and work package.","by agreement"]
+        ],
+        order: "Order",
+        processKicker: "Process",
+        processTitle: "From idea to video",
+        processCopy: "The site shows not only pricing, but a studio feeling: script, visuals, editing and the final result in one flow.",
+        steps: [
+          ["script","Script","First we define the goal, audience and main offer, so the video is not just a pretty cut."],
+          ["visual","Visuals","We choose scene style, color, motion, pacing and 3D layers for the project goal."],
+          ["edit","Editing","We assemble final rhythm, text, voice and export for social media, a site or a presentation."]
+        ],
+        pricingKicker: "Pricing",
+        pricingTitle: "Prices and estimate",
+        pricingCopy: "Base prices stay clear, and the quick estimate helps the client understand the starting budget.",
+        prices: [["15-30 seconds","Ad and social videos","from 50,000 UZS"],["30-60 seconds","Product presentation or offer","from 90,000 UZS"],["1-2 minutes","Educational video or detailed story","from 130,000 UZS"],["2+ minutes","Extended Premium video","200,000 UZS/min"]],
+        calcTitle: "Quick estimate",
+        videoType: "Video type",
+        duration: "Duration",
+        kinds: [["ad","Ad"],["product","Product"],["social","Social"],["edu","Education"]],
+        durations: [["short","15-30 sec"],["medium","30-60 sec"],["long","1-2 min"],["premium","2+ min"]],
+        estimateFrom: "Starting from",
+        orderEstimate: "Order estimate",
+        sum: "UZS",
+        budget: "budget from",
+        whyKicker: "Why",
+        whyTitle: "Strong presentation",
+        whyCopy: "BoburGPT feels like an AI studio: clear, fast, visually consistent and free from noisy details.",
+        why: [["Fast","You can start with a short script and get a video without long production prep."],["Platform-ready","We think about the format immediately: vertical, horizontal, short, detailed or series."],["3D depth","The background and hero scene use coded 3D, so everything remains in one file."],["Flexible","Tone, language, style, length and complexity can fit the exact task."]],
+        contactKicker: "Contact",
+        contactTitle: "Ready to build your video",
+        contactCopy: "Message Bobur on Telegram: send a niche, idea, product link, reference or simply ask which format fits best.",
+        writeTg: "Message on Telegram",
+        consult: "Get consultation",
+        footerCopy: "2026. AI Video Studio for fast and stylish videos.",
+        welcomeTitle: "Choose language",
+        welcomeText: "Choose the site language before entering. You can switch it later from the header.",
+        languageLabel: "Language",
+        enter: "Enter site",
+        modalTitle: "Confirm order",
+        modalPrefix: "Do you really want to order",
+        modalHelp: "If yes, Telegram will open with a prepared message.",
+        modalYes: "Yes, open Telegram",
+        modalNo: "No, close",
+        modalMessage: "Hello! I want to order: {service}. Please tell me the details and price."
       }
+    };
+
+    const basePrices = { ad: 50000, product: 90000, social: 50000, edu: 130000 };
+    const durationFactor = { short: 1, medium: 1.45, long: 2.25, premium: 4 };
+    let selectedKind = "ad";
+    let selectedDuration = "short";
+    let currentLang = localStorage.getItem("boburgpt-lang") || "ru";
+    let animationPaused = false;
+
+    const money = value => `${Math.round(value / 1000) * 1000}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    const t = () => dict[currentLang];
+
+    function setText() {
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.dataset.i18n;
+        if (t()[key]) el.textContent = t()[key];
+      });
+      document.getElementById("welcomeTitle").textContent = t().welcomeTitle;
+      document.getElementById("welcomeText").textContent = t().welcomeText;
+      document.getElementById("languageLabel").textContent = t().languageLabel;
+      document.getElementById("welcomeStart").textContent = t().enter;
+      document.documentElement.lang = currentLang;
+      document.documentElement.dataset.lang = currentLang;
     }
 
-    function addMessage(text, sender) {
-      const chatBox = document.getElementById("chat-box");
-      const message = document.createElement("div");
-      message.classList.add("message", sender);
-      message.textContent = text;
-      chatBox.appendChild(message);
-      chatBox.scrollTop = chatBox.scrollHeight;
+    function setActiveLang() {
+      document.querySelectorAll("[data-lang]").forEach(btn => btn.classList.toggle("active", btn.dataset.lang === currentLang));
     }
+
+    function renderNav() {
+      nav.innerHTML = t().nav.map(([href, label]) => `<a href="${href}">${label}</a>`).join("");
+    }
+
+    function renderMetrics() {
+      document.getElementById("metrics").innerHTML = t().metrics.map(([num, label]) => `<div class="metric"><strong>${num}</strong><span>${label}</span></div>`).join("");
+    }
+
+    function renderTicker() {
+      const items = [...t().ticker, ...t().ticker];
+      document.getElementById("ticker").innerHTML = items.map(item => `<span>${item}</span>`).join("");
+    }
+
+    function renderServices() {
+      document.getElementById("servicesGrid").innerHTML = t().services.map(([key, name, desc, price]) => `
+        <article class="card reveal">
+          <div>
+            <div class="service-art">${art[key]}</div>
+            <h3>${name}</h3>
+            <p>${desc}</p>
+          </div>
+          <div class="card-bottom">
+            <span class="price">${price}</span>
+            <button class="mini-button" type="button" data-order-key="${key}">${t().order}</button>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function renderSteps() {
+      document.getElementById("stepsGrid").innerHTML = t().steps.map(([key, title, desc]) => `
+        <article class="step reveal">${art[key]}<h3>${title}</h3><p>${desc}</p></article>
+      `).join("");
+    }
+
+    function renderPricing() {
+      document.getElementById("priceList").innerHTML = t().prices.map(([duration, label, price]) => `
+        <div class="price-row"><div><strong>${duration}</strong><span>${label}</span></div><b>${price}</b></div>
+      `).join("");
+      document.getElementById("serviceControl").innerHTML = t().kinds.map(([key, label]) => `<button type="button" data-kind="${key}">${label}</button>`).join("");
+      document.getElementById("durationControl").innerHTML = t().durations.map(([key, label]) => `<button type="button" data-duration="${key}">${label}</button>`).join("");
+      document.querySelector(`[data-kind="${selectedKind}"]`)?.classList.add("active");
+      document.querySelector(`[data-duration="${selectedDuration}"]`)?.classList.add("active");
+      updateEstimate();
+    }
+
+    function renderWhy() {
+      const icons = [
+        '<path d="M5 13h6L9 21l10-13h-6l2-5L5 13Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+        '<path d="M4 7h16v10H4V7Z" stroke="currentColor" stroke-width="1.8"/><path d="M9 10.5 14 12l-5 1.5v-3Z" fill="currentColor"/>',
+        '<path d="M12 3 20 7.5v9L12 21l-8-4.5v-9L12 3Z" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v8M8 10.2l8 4.6M16 10.2l-8 4.6" stroke="currentColor" stroke-width="1.5"/>',
+        '<path d="M5 6h14M5 12h14M5 18h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 4v4M16 10v4M11 16v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'
+      ];
+      document.getElementById("whyGrid").innerHTML = t().why.map(([title, desc], i) => `
+        <article class="why-card reveal"><span class="why-icon"><svg viewBox="0 0 24 24" fill="none">${icons[i]}</svg></span><h3>${title}</h3><p>${desc}</p></article>
+      `).join("");
+    }
+
+    function renderAll() {
+      setText();
+      setActiveLang();
+      renderNav();
+      renderMetrics();
+      renderTicker();
+      renderServices();
+      renderSteps();
+      renderPricing();
+      renderWhy();
+      document.getElementById("contactArt").innerHTML = art.contact;
+      bindDynamicEvents();
+      revealFresh();
+    }
+
+    function revealFresh() {
+      document.querySelectorAll(".reveal").forEach(el => {
+        if (!el.dataset.observed) {
+          observer.observe(el);
+          el.dataset.observed = "1";
+        }
+      });
+    }
+
+    function serviceName(key) {
+      return t().services.find(item => item[0] === key)?.[1] || key;
+    }
+
+    function openOrder(keyOrText) {
+      const name = serviceName(keyOrText);
+      const message = t().modalMessage.replace("{service}", name);
+      document.getElementById("modalTitle").textContent = t().modalTitle;
+      modalText.textContent = `${t().modalPrefix}: ${name}? ${t().modalHelp}`;
+      modalTelegram.textContent = t().modalYes;
+      modalClose.textContent = t().modalNo;
+      modalTelegram.href = `https://t.me/${tgUser}?text=${encodeURIComponent(message)}`;
+      modal.classList.add("open");
+    }
+
+    function updateEstimate() {
+      const value = basePrices[selectedKind] * durationFactor[selectedDuration];
+      estimateValue.textContent = `${money(value)} ${t().sum}`;
+    }
+
+    function bindDynamicEvents() {
+      document.querySelectorAll("[data-order-key]").forEach(button => {
+        button.onclick = () => openOrder(button.dataset.orderKey);
+      });
+      document.getElementById("serviceControl").querySelectorAll("button").forEach(button => {
+        button.onclick = () => {
+          selectedKind = button.dataset.kind;
+          renderPricing();
+        };
+      });
+      document.getElementById("durationControl").querySelectorAll("button").forEach(button => {
+        button.onclick = () => {
+          selectedDuration = button.dataset.duration;
+          renderPricing();
+        };
+      });
+      document.getElementById("estimateOrder").onclick = () => openOrder(`${serviceName(selectedKind)}, ${t().budget} ${estimateValue.textContent}`);
+    }
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add("visible");
+      });
+    }, { threshold: 0.14 });
+
+    document.addEventListener("click", event => {
+      const langBtn = event.target.closest("[data-lang]");
+      if (langBtn) {
+        currentLang = langBtn.dataset.lang;
+        localStorage.setItem("boburgpt-lang", currentLang);
+        renderAll();
+      }
+      if (event.target.closest("#nav a")) nav.classList.remove("open");
+    });
+
+    menuToggle.addEventListener("click", () => nav.classList.toggle("open"));
+    welcomeStart.addEventListener("click", () => welcomeModal.classList.remove("open"));
+    modalClose.addEventListener("click", () => modal.classList.remove("open"));
+    modalTelegram.addEventListener("click", () => modal.classList.remove("open"));
+    modal.addEventListener("click", event => {
+      if (event.target === modal) modal.classList.remove("open");
+    });
+
+    document.addEventListener("pointermove", event => {
+      const x = event.clientX / window.innerWidth - 0.5;
+      const y = event.clientY / window.innerHeight - 0.5;
+      root.style.setProperty("--mx", x.toFixed(3));
+      root.style.setProperty("--my", y.toFixed(3));
+    });
+
+    renderAll();
+    welcomeModal.classList.add("open");
+
+    const canvas = document.getElementById("scene3d");
+    const ctx = canvas.getContext("2d");
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+    let pointerX = 0;
+    let pointerY = 0;
+
+    function resizeCanvas() {
+      dpr = Math.min(window.devicePixelRatio || 1, 1.25);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("pointermove", event => {
+      pointerX = event.clientX / width - 0.5;
+      pointerY = event.clientY / height - 0.5;
+    });
+    document.addEventListener("visibilitychange", () => {
+      animationPaused = document.hidden;
+      if (!animationPaused) requestAnimationFrame(renderScene);
+    });
+
+    function rotate(point, ax, ay, az) {
+      let [x, y, z] = point;
+      let c = Math.cos(ax), s = Math.sin(ax);
+      let ny = y * c - z * s;
+      let nz = y * s + z * c;
+      y = ny; z = nz;
+      c = Math.cos(ay); s = Math.sin(ay);
+      let nx = x * c + z * s;
+      nz = -x * s + z * c;
+      x = nx; z = nz;
+      c = Math.cos(az); s = Math.sin(az);
+      nx = x * c - y * s;
+      ny = x * s + y * c;
+      return [nx, ny, z];
+    }
+
+    function project([x, y, z]) {
+      const depth = 720;
+      const scale = depth / (depth + z);
+      return { x: width * 0.5 + x * scale, y: height * 0.5 + y * scale, scale, z };
+    }
+
+    function drawCube(cx, cy, cz, size, rx, ry, rz) {
+      const s = size / 2;
+      const colors = ["rgba(255,210,63,.18)", "rgba(255,240,138,.2)", "rgba(201,139,0,.16)", "rgba(255,210,63,.14)", "rgba(255,240,138,.14)", "rgba(255,248,212,.09)"];
+      const v = [[-s,-s,-s],[s,-s,-s],[s,s,-s],[-s,s,-s],[-s,-s,s],[s,-s,s],[s,s,s],[-s,s,s]].map(p => {
+        const r = rotate(p, rx, ry, rz);
+        return [r[0] + cx, r[1] + cy, r[2] + cz];
+      });
+      const faces = [[0,1,2,3,0],[4,5,6,7,1],[0,1,5,4,2],[2,3,7,6,3],[1,2,6,5,4],[0,3,7,4,5]].sort((a,b) => {
+        const za = a.slice(0,4).reduce((sum,i) => sum + v[i][2], 0);
+        const zb = b.slice(0,4).reduce((sum,i) => sum + v[i][2], 0);
+        return za - zb;
+      });
+      faces.forEach(face => {
+        const pts = face.slice(0,4).map(i => project(v[i]));
+        ctx.beginPath();
+        pts.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
+        ctx.closePath();
+        ctx.fillStyle = colors[face[4]];
+        ctx.strokeStyle = "rgba(255,221,91,.2)";
+        ctx.lineWidth = 1;
+        ctx.fill();
+        ctx.stroke();
+      });
+    }
+
+    function drawOrbit(time, radius, color, tilt) {
+      const segments = width < 700 ? 30 : 42;
+      const pts = [];
+      for (let i = 0; i < segments; i++) {
+        const a = i / segments * Math.PI * 2;
+        const p = rotate([Math.cos(a) * radius, Math.sin(a) * radius * 0.34, Math.sin(a) * radius], tilt, time * 0.28, 0);
+        pts.push(project([p[0], p[1] - 30, p[2] + 40]));
+      }
+      ctx.beginPath();
+      pts.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
+      ctx.closePath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+    }
+
+    function drawLines(time) {
+      ctx.save();
+      ctx.globalAlpha = 0.42;
+      const lines = width < 700 ? 6 : 10;
+      for (let i = 0; i < lines; i++) {
+        const y = (i / lines) * height + Math.sin(time * 0.7 + i) * 14;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y + Math.sin(time + i) * 20);
+        ctx.strokeStyle = i % 3 === 0 ? "rgba(255,210,63,.14)" : "rgba(255,221,91,.055)";
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    let lastFrame = 0;
+    function renderScene(now) {
+      if (animationPaused) return;
+      if (now - lastFrame < 33) {
+        requestAnimationFrame(renderScene);
+        return;
+      }
+      lastFrame = now;
+      const time = now * 0.001;
+      ctx.clearRect(0, 0, width, height);
+      drawLines(time);
+      const shiftX = pointerX * 70;
+      const shiftY = pointerY * 55;
+      drawOrbit(time, Math.min(width, height) * 0.24, "rgba(255,210,63,.42)", 0.8 + pointerY * 0.4);
+      drawOrbit(time + 2, Math.min(width, height) * 0.18, "rgba(255,240,138,.34)", -0.7 + pointerX * 0.4);
+      drawCube(shiftX, shiftY - 32, 0, Math.min(width, height) * 0.18, time * 0.28 + pointerY, time * 0.42 + pointerX, time * 0.14);
+      drawCube(width * 0.28, -height * 0.13, 80, 82, time * 0.18, time * 0.35, -0.25);
+      requestAnimationFrame(renderScene);
+    }
+
+    resizeCanvas();
+    requestAnimationFrame(renderScene);
   </script>
 </body>
 </html>
